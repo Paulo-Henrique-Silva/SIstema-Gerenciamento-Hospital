@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <conio.h>
 
+#define PATIENTS_FPATH "patients.txt"
+#define DOCTORS_FPATH "doctors.txt"
+#define APPOINT_FPATH "appointments.txt"
+
 enum menuOptions 
 {
     AddAppoint_num = 1, RemoveAppoint_num, ChangeAppoint_num,
@@ -9,6 +13,8 @@ enum menuOptions
     AddDoctor_num, RemoveDoctor_num, ChangeDoctor_num, 
     Info_num, ExitProgram_num
 };
+
+FILE *pPatients, *pDoctors, *pAppoint;
 
 int menu(void);
 
@@ -116,38 +122,47 @@ void addAppoint(void)
 {
 
 }
+
 void removeAppoint(void)
 {
 
 }
+
 void changeAppoint(void)
 {
 
 }
+
 void addPatient(void)
 {
 
 }
+
 void removePatient(void)
 {
 
 }
+
 void changePatient(void)
 {
 
 }
+
 void addDoctor(void)
 {
 
 }
+
 void removeDoctor(void)
 {
 
 }
+
 void changeDoctor(void)
 {
 
 }
+
 void help(void)
 {
 
