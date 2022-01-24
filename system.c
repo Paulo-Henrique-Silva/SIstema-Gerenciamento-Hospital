@@ -143,6 +143,7 @@ int menu(void)
 
     system("cls");
     printf("\t\t\t\tHOSPITAL MANAGEMENT SYSTEM");
+    printf("\n\t\t\t--------------------------------------");
 
     printf("\n\n\t\t\t\t[1] - Add an Appointment");
     printf("\n\t\t\t\t[2] - Remove an Appointment");
@@ -198,7 +199,8 @@ void addPatient(void)
     }
 
     system("cls");
-    printf("\t\t\t\tADDING A PATIENT");
+    printf("\t\t\t\t   ADDING A PATIENT");
+    printf("\n\t\t\t--------------------------------------");
 
     printf("\n\nType the new Patient Name: ");
     fgets(input, sizeof(new.name), stdin);
@@ -279,7 +281,26 @@ void showDoctor(void)
 
 void changePwd(void)
 {
+    char newPwd[1024] = {'\0'};
 
+    if(login() == 0)
+    {
+        printf("\nIncorrect Password!");
+        return;
+    }
+
+    system("cls");
+    printf("\t\t\t\t   CHANGING PASSWORD");
+    printf("\n\t\t\t--------------------------------------");
+
+    printf("\n\nType the New Adm Password: ");
+    fgets(newPwd, 1024, stdin);
+
+    pAdm = fopen(ADM_FPATH, "w");
+    fprintf(pAdm, "%s", newPwd);
+    fclose(pAdm);
+
+    printf("\nPassoword Updated!");
 }
 
 void help(void)
