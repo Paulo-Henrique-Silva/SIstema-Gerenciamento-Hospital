@@ -1,33 +1,60 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 #include <conio.h>
 
 #define PATIENTS_FPATH "patients.txt"
 #define DOCTORS_FPATH "doctors.txt"
 #define APPOINT_FPATH "appointments.txt"
+#define ADM_FPATH "pwd.txt"
+#define DEFAULT_PWD "2022\n"
 
 enum menuOptions 
 {
-    AddAppoint_num = 1, RemoveAppoint_num, ChangeAppoint_num,
-    AddPatient_num, RemovePatient_num, ChangePatient_num,
-    AddDoctor_num, RemoveDoctor_num, ChangeDoctor_num, 
-    Info_num, ExitProgram_num
+    AddAppoint_num = 1, RemoveAppoint_num, ChangeAppoint_num, ShowAppoint_num,
+    AddPatient_num, RemovePatient_num, ChangePatient_num, ShowPatient_num,
+    AddDoctor_num, RemoveDoctor_num, ChangeDoctor_num, ShowDoctor_num,
+    Changepwd, Info_num, ExitProgram_num
 };
 
-FILE *pPatients, *pDoctors, *pAppoint;
+FILE *pPatients, *pDoctors, *pAppoint, *pAdm;
+
+typedef struct patientsInfo
+{
+    char name[45], id_num[9], sex, telephone[12], age[4];
+} patient;
+
+typedef struct doctorInfo
+{
+    char name[45], id_num[9], age[4];
+} doctor;
+
+typedef struct appointInfo
+{
+    char type[2], date[10], time[6], patientName[45], DoctorName[45];
+} appointment;
 
 int menu(void);
 
 void addAppoint(void);
 void removeAppoint(void);
 void changeAppoint(void);
+void showAppoint(void);
 void addPatient(void);
 void removePatient(void);
 void changePatient(void);
+void showPatient(void);
 void addDoctor(void);
 void removeDoctor(void);
 void changeDoctor(void);
+void showDoctor(void);
+void changePwd(void);
 void help(void);
+
+int login(void);
+void removeExtra_chars(char *string);
+int checkFile(FILE *pFile, char fPath[]);
 
 int main()
 {
@@ -48,6 +75,10 @@ int main()
             case ChangeAppoint_num:
                 changeAppoint();
                 break;
+            
+            case ShowAppoint_num:
+                showAppoint();
+                break;
                 
             case AddPatient_num:
                 addPatient();
@@ -59,6 +90,10 @@ int main()
 
             case ChangePatient_num:
                 changePatient();
+                break;
+            
+            case ShowPatient_num:
+                showPatient();
                 break;
 
             case AddDoctor_num:
@@ -73,6 +108,14 @@ int main()
                 changeDoctor();
                 break;
             
+            case ShowDoctor_num:
+                showDoctor();
+                break;
+            
+            case Changepwd:
+                changePwd();
+                break;
+            
             case Info_num:
                 help();
                 break;
@@ -85,10 +128,11 @@ int main()
                 printf("\nInvalid Input");
                 break;
         }
+
+        getch();
     }
     while(operation != ExitProgram_num); //shows menu options until the user types exit
 
-    getch();
     return 0;
 }
 
@@ -103,16 +147,20 @@ int menu(void)
     printf("\n\n\t\t\t\t[1] - Add an Appointment");
     printf("\n\t\t\t\t[2] - Remove an Appointment");
     printf("\n\t\t\t\t[3] - Change an Appointment data");
-    printf("\n\t\t\t\t[4] - Add a Patient");
-    printf("\n\t\t\t\t[5] - Remove a Patient");
-    printf("\n\t\t\t\t[6] - Change a Patient data");
-    printf("\n\t\t\t\t[7] - Add a Doctor");
-    printf("\n\t\t\t\t[8] - Remove a Doctor");
-    printf("\n\t\t\t\t[9] - Change a Doctor data");
-    printf("\n\t\t\t\t[10] - Help");
-    printf("\n\t\t\t\t[11] - Exit");
+    printf("\n\t\t\t\t[4] - Show Appointments List");
+    printf("\n\t\t\t\t[5] - Add a Patient");
+    printf("\n\t\t\t\t[6] - Remove a Patient");
+    printf("\n\t\t\t\t[7] - Change a Patient data");
+    printf("\n\t\t\t\t[8] - Show Patients List");
+    printf("\n\t\t\t\t[9] - Add a Doctor");
+    printf("\n\t\t\t\t[10] - Remove a Doctor");
+    printf("\n\t\t\t\t[11] - Change a Doctor data");
+    printf("\n\t\t\t\t[12] - Show Doctors List");
+    printf("\n\t\t\t\t[13] - Change Administrator Password");
+    printf("\n\t\t\t\t[14] - Help");
+    printf("\n\t\t\t\t[15] - Exit");
 
-    printf("\n\nType the Opeeration: ");
+    printf("\n\nType the Operation: ");
     fgets(input, 1024, stdin);
 
     return atoi(input);
@@ -133,9 +181,65 @@ void changeAppoint(void)
 
 }
 
-void addPatient(void)
+void showAppoint(void)
 {
 
+}
+
+void addPatient(void)
+{
+    char input[1024] = {'\0'};
+    patient new;
+
+    if(login() == 0)
+    {
+        printf("\nIncorrect Password!");
+        return;
+    }
+
+    system("cls");
+    printf("\t\t\t\tADDING A PATIENT");
+
+    printf("\n\nType the new Patient Name: ");
+    fgets(input, sizeof(new.name), stdin);
+    removeExtra_chars(strcpy(new.name, input));
+
+    printf("\nType the new Patient Id: ");
+    fgets(input, sizeof(new.id_num), stdin);
+    removeExtra_chars(strcpy(new.id_num, input));
+
+    printf("\nType the new Patient Sex(F - Female | M - Male): ");
+    fgets(input, 1024, stdin);
+    removeExtra_chars(input);
+    if((new.sex = toupper(input[0])) != 'F' && new.sex != 'M')
+    {
+        printf("\nInvalid Sex Input!");
+        return;
+    }
+
+    printf("\nType the new Patient Age: ");
+    fgets(input, 1024, stdin);
+    removeExtra_chars(input);
+    if(atoi(input) == 0) //checks if it is a number
+    {
+        printf("\nInvalid Age Input!");
+        return;
+    }
+    strcpy(new.age, input);
+
+    printf("\nType the new Patient Telephone: ");
+    fgets(input, sizeof(new.telephone), stdin);
+    removeExtra_chars(strcpy(new.telephone, input));
+
+    //how it is adding to file, there is no need to block the program
+    checkFile(pPatients, PATIENTS_FPATH);
+
+    pPatients = fopen(PATIENTS_FPATH, "a");
+    fprintf(pPatients, "%s %s %c %s %s\n", new.name, new.id_num, new.sex, 
+    new.age, new.telephone);
+    fclose(pPatients);
+
+    printf("\nNew Patient Successfully Added!");
 }
 
 void removePatient(void)
@@ -144,6 +248,11 @@ void removePatient(void)
 }
 
 void changePatient(void)
+{
+
+}
+
+void showPatient(void)
 {
 
 }
@@ -163,7 +272,98 @@ void changeDoctor(void)
 
 }
 
+void showDoctor(void)
+{
+    
+}
+
+void changePwd(void)
+{
+
+}
+
 void help(void)
 {
 
+}
+
+//Returns 1 if the adm password it is correct,
+//else returns 0
+int login(void)
+{
+    char input[1024] = {'\0'}, pwdIn_file[1024] = {'\0'};
+
+    //if the file does not have a pwd, it writes the default one
+    if(checkFile(pAdm, ADM_FPATH) != 1)
+    {
+        pAdm = fopen(ADM_FPATH, "a");
+        fprintf(pAdm, "%s", DEFAULT_PWD);
+        fclose(pAdm);
+    }
+
+    pAdm = fopen(ADM_FPATH, "r");
+    fscanf(pAdm, "%s", &pwdIn_file);
+    fclose(pAdm);
+
+    printf("\nType the Admin Password: ");
+    fgets(input, 1024, stdin);
+
+    //removes '\n' in last char
+    input[strlen(input) - 1] = '\0';
+
+    if(strcmp(pwdIn_file, input) == 0)
+        return 1;
+    else 
+        return 0;
+}
+
+/*
+Avoids a "fgets" get extra chars from the previous one and
+removes the blank spaces from the string
+*/
+void removeExtra_chars(char *string)
+{
+    //removes extra chars
+    if(strchr(string, '\n') == NULL)
+    {
+        char extra;
+
+        while((extra = fgetc(stdin)) != '\n' && extra != EOF);
+    } 
+
+    for(int i = 0; i < strlen(string); i++)
+    {
+        if(string[i] == ' ')
+            string[i] = '-';
+    }
+
+    //removes the '\n' in last char
+    string[strlen(string) - 1] = '\0';
+}
+
+/*
+Checks the file situation. Returns:
+-1 - If the file does not exist and creates it
+0 - if it is empty
+1 - If it is filled
+*/
+int checkFile(FILE *pFile, char fPath[])
+{
+    char buffer[1024] = {'\0'}, firstLine[1024] = {'\0'};
+
+    pFile = fopen(fPath, "r");
+    fgets(buffer, 1024, pFile);
+    fclose(pFile);
+
+    if(pFile == NULL) 
+    {   
+        pFile = fopen(fPath, "w");
+        fclose(pFile);
+
+        return -1;
+    }
+    else if(strcmp(buffer, "\0") == 0)  
+        return 0;
+    else 
+        return 1;
 }
