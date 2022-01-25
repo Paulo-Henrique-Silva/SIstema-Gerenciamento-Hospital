@@ -11,6 +11,9 @@
 #define TEMP_FPATH "temp.tmp"
 
 #define DEFAULT_PWD "2022\n"
+#define MAX_PATIENTSNUM 20
+#define MAX_DOCTORSNUM 5
+#define MAX_APPOINTNUM 10
 
 enum menuOptions 
 {
@@ -57,6 +60,7 @@ void help(void);
 int login(void);
 void removeExtra_chars(char *string);
 int checkFile(FILE *pFile, char fPath[]);
+int amountOf_lines(FILE *pFile, char fPath[]);
 
 int main()
 {
@@ -144,7 +148,7 @@ int menu(void)
     char input[1024] = {'\0'};
 
     system("cls");
-    printf("\t\t\t\tHOSPITAL MANAGEMENT SYSTEM");
+    printf("\t\t\t       HOSPITAL MANAGEMENT SYSTEM");
     printf("\n\t\t\t--------------------------------------");
 
     printf("\n\n\t\t\t\t[1] - Add an Appointment");
@@ -192,7 +196,7 @@ void showAppoint(void)
 void addPatient(void)
 {
     char input[1024] = {'\0'};
-    patient new;
+    patient newPatient;
 
     if(login() == 0)
     {
@@ -204,31 +208,43 @@ void addPatient(void)
     printf("\t\t\t\t   ADDING A PATIENT");
     printf("\n\t\t\t--------------------------------------");
 
+    //checks the amount of Patients in System
+    checkFile(pPatients, PATIENTS_FPATH);
+    if(amountOf_lines(pPatients, PATIENTS_FPATH) >= MAX_PATIENTSNUM)
+    {
+        printf("\n\nSorry, max Amount of Patients reached (%d)!", MAX_PATIENTSNUM);
+        return;
+    }
+
     printf("\n\nType the new Patient Name: ");
-    fgets(input, sizeof(new.name), stdin);
-    removeExtra_chars(strcpy(new.name, input));
+    fgets(input, sizeof(newPatient.name), stdin);
+    removeExtra_chars(strcpy(newPatient.name, input));
 
     //puts in upper case to avoid errors and
     //Checks if it has just alphabetic characters
-    strupr(new.name); 
-    for(int i = 0; i < strlen(new.name); i++)
+    strupr(newPatient.name); 
+    for(int i = 0; i < strlen(newPatient.name); i++)
     {
-        if((new.name[i] < 'A' || new.name[i] > 'Z') && new.name[i] != '-')
+        if((newPatient.name[i] < 'A' || newPatient.name[i] > 'Z') && newPatient.name[i] != '-')
         {
             printf("\nInvalid Name!");
             return;
         }
     }
 
-    printf("\nType the new Patient Id: ");
-    fgets(input, sizeof(new.id_num), stdin);
-    removeExtra_chars(strcpy(new.id_num, input));
+    printf("\nType the new Patient Id Number: ");
+    fgets(input, sizeof(newPatient.id_num), stdin);
+    removeExtra_chars(strcpy(newPatient.id_num, input));
 
     //checks if it has just numbers
     // "- 0" converts to an int
-    for(int i = 0; i < strlen(new.id_num); i++)
+    for(int i = 0; i < strlen(newPatient.id_num); i++)
     {
-        if((new.id_num[i] - '0' < 0 || new.id_num[i] - '0' > 9) && new.id_num[i] != '-')
+        if
+        (
+            (newPatient.id_num[i] - '0' < 0 || newPatient.id_num[i] - '0' > 9) && 
+            newPatient.id_num[i] != '-'
+        )
         {
             printf("\nInvalid Id!");
             return;
@@ -238,7 +254,8 @@ void addPatient(void)
     printf("\nType the new Patient Sex(F - Female | M - Male): ");
     fgets(input, 1024, stdin);
     removeExtra_chars(input);
-    if((new.sex = toupper(input[0])) != 'F' && new.sex != 'M')
+
+    if((newPatient.sex = toupper(input[0])) != 'F' && newPatient.sex != 'M')
     {
         printf("\nInvalid Sex Input!");
         return;
@@ -254,16 +271,20 @@ void addPatient(void)
         printf("\nInvalid Age Input!");
         return;
     }
-    strcpy(new.age, input);
+    strcpy(newPatient.age, input);
 
     printf("\nType the new Patient Telephone: ");
-    fgets(input, sizeof(new.telephone), stdin);
-    removeExtra_chars(strcpy(new.telephone, input));
+    fgets(input, sizeof(newPatient.telephone), stdin);
+    removeExtra_chars(strcpy(newPatient.telephone, input));
 
     //checks it it has just number
-    for(int i = 0; i < strlen(new.telephone); i++)
+    for(int i = 0; i < strlen(newPatient.telephone); i++)
     {
-        if((new.telephone[i] - '0' < 0 || new.telephone[i] - '0' > 9) && new.telephone[i] != '-')
+        if
+        (
+            (newPatient.telephone[i] - '0' < 0 || newPatient.telephone[i] - '0' > 9) && 
+            newPatient.telephone[i] != '-'
+        )
         {
             printf("\nInvalid Telephone Number!");
             return;
@@ -274,8 +295,8 @@ void addPatient(void)
     checkFile(pPatients, PATIENTS_FPATH);
 
     pPatients = fopen(PATIENTS_FPATH, "a");
-    fprintf(pPatients, "%s %s %c %s %s\n", new.name, new.id_num, new.sex, 
-    new.age, new.telephone);
+    fprintf(pPatients, "%s %s %c %s %s\n", newPatient.name, newPatient.id_num, newPatient.sex, 
+    newPatient.age, newPatient.telephone);
     fclose(pPatients);
 
     printf("\nNew Patient Successfully Added!");
@@ -283,7 +304,7 @@ void addPatient(void)
 
 void removePatient(void)
 {
-    patient inFile;
+    patient inFile_patient;
     int lineCounter = 0, patientNum_toRemove = 0;
     char input[1024] = {'\0'};
 
@@ -307,13 +328,13 @@ void removePatient(void)
 
     while //shows patient list
     (
-        fscanf(pPatients, "%s %s %c %s %s\n", &inFile.name, &inFile.id_num, &inFile.sex, 
-        &inFile.age, &inFile.telephone) != EOF
+        fscanf(pPatients, "%s %s %c %s %s\n", &inFile_patient.name, &inFile_patient.id_num, 
+        &inFile_patient.sex, &inFile_patient.age, &inFile_patient.telephone) != EOF
     )
     {
         lineCounter++;
-        printf("\n\n\t\t    %d - Name: %s - Age: %s - Telephone: %s", lineCounter, inFile.name, 
-        inFile.age, inFile.telephone);
+        printf("\n\n\t\t    %d - Name: %s - Age: %s - Telephone: %s", lineCounter, 
+        inFile_patient.name, inFile_patient.age, inFile_patient.telephone);
     }
 
     fclose(pPatients);
@@ -341,8 +362,8 @@ void removePatient(void)
 
     while //reads the old file
     (
-        fscanf(pPatients, "%s %s %c %s %s\n", &inFile.name, &inFile.id_num, &inFile.sex, 
-        &inFile.age, &inFile.telephone) != EOF
+        fscanf(pPatients, "%s %s %c %s %s\n", &inFile_patient.name, &inFile_patient.id_num, 
+        &inFile_patient.sex, &inFile_patient.age, &inFile_patient.telephone) != EOF
     )
     {
         lineCounter++;
@@ -350,8 +371,8 @@ void removePatient(void)
         //prints the content in new file without the removed patient
         if(lineCounter != patientNum_toRemove)
         {
-            fprintf(pTemp, "%s %s %c %s %s\n", inFile.name, inFile.id_num, inFile.sex, 
-            inFile.age, inFile.telephone);
+            fprintf(pTemp, "%s %s %c %s %s\n", inFile_patient.name, inFile_patient.id_num, 
+            inFile_patient.sex, inFile_patient.age, inFile_patient.telephone);
         }
     }
 
@@ -373,7 +394,7 @@ void changePatient(void)
 void showPatient(void)
 {
     int lineCounter = 0;
-    patient inFile;
+    patient inFile_patient;
 
     if(login() == 0)
     {
@@ -395,13 +416,13 @@ void showPatient(void)
 
     while //reads each line in file and prints it
     (
-        fscanf(pPatients, "%s %s %c %s %s\n", &inFile.name, &inFile.id_num, &inFile.sex, 
-        &inFile.age, &inFile.telephone) != EOF
+        fscanf(pPatients, "%s %s %c %s %s\n", &inFile_patient.name, &inFile_patient.id_num,
+        &inFile_patient.sex, &inFile_patient.age, &inFile_patient.telephone) != EOF
     )
     {
         lineCounter++;
-        printf("\n\n\t\t    %d - Name: %s - Age: %s - Telephone: %s", lineCounter, inFile.name, 
-        inFile.age, inFile.telephone);
+        printf("\n\n\t\t    %d - Name: %s - Age: %s - Telephone: %s", lineCounter, 
+        inFile_patient.name, inFile_patient.age, inFile_patient.telephone);
     }
 
     fclose(pPatients);
@@ -411,7 +432,80 @@ void showPatient(void)
 
 void addDoctor(void)
 {
+    char input[1024] = {'\0'};
+    doctor newDoc;
 
+    if(login() == 0)
+    {
+        printf("\nIncorrect Password!");
+        return;
+    }
+
+    system("cls");
+    printf("\t\t\t\t   ADDING A DOCTOR");
+    printf("\n\t\t\t--------------------------------------");
+
+    //checks the amount of Doctors in System
+    checkFile(pDoctors, DOCTORS_FPATH);
+    if(amountOf_lines(pDoctors, DOCTORS_FPATH) >= MAX_DOCTORSNUM)
+    {
+        printf("\n\nSorry, max Amount of Doctors reached (%d)!", MAX_DOCTORSNUM);
+        return;
+    }
+
+    printf("\n\nType the new Doctor Name: ");
+    fgets(input, sizeof(newDoc.name), stdin);
+    removeExtra_chars(strcpy(newDoc.name, input));
+
+    //Checks if it has just alphabetic characters
+    strupr(newDoc.name); 
+    for(int i = 0; i < strlen(newDoc.name); i++)
+    {
+        if((newDoc.name[i] < 'A' || newDoc.name[i] > 'Z') && newDoc.name[i] != '-')
+        {
+            printf("\nInvalid Name!");
+            return;
+        }
+    }
+
+    printf("\nType the new Doctor Id Number: ");
+    fgets(input, sizeof(newDoc.id_num), stdin);
+    removeExtra_chars(strcpy(newDoc.id_num, input));
+
+    //checks if it has just numbers
+    // "- 0" converts to an int
+    for(int i = 0; i < strlen(newDoc.id_num); i++)
+    {
+        if
+        (
+            (newDoc.id_num[i] - '0' < 0 || newDoc.id_num[i] - '0' > 9) && 
+            newDoc.id_num[i] != '-'
+        )
+        {
+            printf("\nInvalid Id!");
+            return;
+        }
+    }
+
+    printf("\nType the new Doctor Age: ");
+    fgets(input, 1024, stdin);
+    removeExtra_chars(input);
+
+    //checks if it is a valid age number
+    if(atoi(input) <= 0) 
+    {
+        printf("\nInvalid Age Input!");
+        return;
+    }
+    strcpy(newDoc.age, input);
+
+    //add to file
+    checkFile(pDoctors, DOCTORS_FPATH);
+    pDoctors = fopen(DOCTORS_FPATH, "a");
+    fprintf(pDoctors, "%s %s %s\n", newDoc.name, newDoc.id_num, newDoc.age);
+    fclose(pDoctors);
+
+    printf("\nNew Doctor Successfully Added!");
 }
 
 void removeDoctor(void)
@@ -537,4 +631,19 @@ int checkFile(FILE *pFile, char fPath[])
         return 0;
     else 
         return 1;
+}
+
+//Returns the amount of line in a file.
+//It will return 0, if the file does not exist
+int amountOf_lines(FILE *pFile, char fPath[])
+{
+    int amount = 0;
+    char buffer[1024] = {'\0'};
+
+    pFile = fopen(fPath, "r");
+    while(fgets(buffer, 1024, pFile) != NULL)
+        amount++;
+    fclose(pFile);
+
+    return amount;
 }
