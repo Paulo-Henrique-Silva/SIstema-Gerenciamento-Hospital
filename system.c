@@ -208,9 +208,32 @@ void addPatient(void)
     fgets(input, sizeof(new.name), stdin);
     removeExtra_chars(strcpy(new.name, input));
 
+    //puts in upper case to avoid errors and
+    //Checks if it has just alphabetic characters
+    strupr(new.name); 
+    for(int i = 0; i < strlen(new.name); i++)
+    {
+        if((new.name[i] < 'A' || new.name[i] > 'Z') && new.name[i] != '-')
+        {
+            printf("\nInvalid Name!");
+            return;
+        }
+    }
+
     printf("\nType the new Patient Id: ");
     fgets(input, sizeof(new.id_num), stdin);
     removeExtra_chars(strcpy(new.id_num, input));
+
+    //checks if it has just numbers
+    // "- 0" converts to an int
+    for(int i = 0; i < strlen(new.id_num); i++)
+    {
+        if((new.id_num[i] - '0' < 0 || new.id_num[i] - '0' > 9) && new.id_num[i] != '-')
+        {
+            printf("\nInvalid Id!");
+            return;
+        }
+    }
 
     printf("\nType the new Patient Sex(F - Female | M - Male): ");
     fgets(input, 1024, stdin);
@@ -224,7 +247,9 @@ void addPatient(void)
     printf("\nType the new Patient Age: ");
     fgets(input, 1024, stdin);
     removeExtra_chars(input);
-    if(atoi(input) <= 0) //checks if it is a valid age number
+
+    //checks if it is a valid age number
+    if(atoi(input) <= 0) 
     {
         printf("\nInvalid Age Input!");
         return;
@@ -234,6 +259,16 @@ void addPatient(void)
     printf("\nType the new Patient Telephone: ");
     fgets(input, sizeof(new.telephone), stdin);
     removeExtra_chars(strcpy(new.telephone, input));
+
+    //checks it it has just number
+    for(int i = 0; i < strlen(new.telephone); i++)
+    {
+        if((new.telephone[i] - '0' < 0 || new.telephone[i] - '0' > 9) && new.telephone[i] != '-')
+        {
+            printf("\nInvalid Telephone Number!");
+            return;
+        }
+    }
 
     //how it is adding to file, there is no need to block the program
     checkFile(pPatients, PATIENTS_FPATH);
@@ -270,7 +305,7 @@ void removePatient(void)
 
     pPatients = fopen(PATIENTS_FPATH, "r");
 
-    while
+    while //shows patient list
     (
         fscanf(pPatients, "%s %s %c %s %s\n", &inFile.name, &inFile.id_num, &inFile.sex, 
         &inFile.age, &inFile.telephone) != EOF
