@@ -8,6 +8,8 @@
 #define DOCTORS_FPATH "doctors.txt"
 #define APPOINT_FPATH "appointments.txt"
 #define ADM_FPATH "pwd.txt"
+#define TEMP_FPATH "temp.tmp"
+
 #define DEFAULT_PWD "2022\n"
 
 enum menuOptions 
@@ -18,7 +20,7 @@ enum menuOptions
     Changepwd, Info_num, ExitProgram_num
 };
 
-FILE *pPatients, *pDoctors, *pAppoint, *pAdm;
+FILE *pPatients, *pDoctors, *pAppoint, *pAdm, *pTemp;
 
 typedef struct patientsInfo
 {
@@ -222,7 +224,7 @@ void addPatient(void)
     printf("\nType the new Patient Age: ");
     fgets(input, 1024, stdin);
     removeExtra_chars(input);
-    if(atoi(input) == 0) //checks if it is a number
+    if(atoi(input) <= 0) //checks if it is a valid age number
     {
         printf("\nInvalid Age Input!");
         return;
@@ -246,7 +248,86 @@ void addPatient(void)
 
 void removePatient(void)
 {
+    patient inFile;
+    int lineCounter = 0, patientNum_toRemove = 0;
+    char input[1024] = {'\0'};
 
+    if(login() == 0)
+    {
+        printf("\nIncorrect Password!");
+        return;
+    }
+
+    system("cls");
+    printf("\t\t\t\t    REMOVING A PATIENT");
+    printf("\n\t\t\t--------------------------------------");
+
+    if(checkFile(pPatients, PATIENTS_FPATH) != 1)
+    {
+        printf("\n\nSorry, it seems it does not have a Patient yet :/");
+        return;
+    }
+
+    pPatients = fopen(PATIENTS_FPATH, "r");
+
+    while
+    (
+        fscanf(pPatients, "%s %s %c %s %s\n", &inFile.name, &inFile.id_num, &inFile.sex, 
+        &inFile.age, &inFile.telephone) != EOF
+    )
+    {
+        lineCounter++;
+        printf("\n\n\t\t    %d - Name: %s - Age: %s - Telephone: %s", lineCounter, inFile.name, 
+        inFile.age, inFile.telephone);
+    }
+
+    fclose(pPatients);
+
+    printf("\n\nType the Patient Number to remove: ");
+    fgets(input, 1024, stdin);
+    
+    //gets a str and converts to an integer
+    if((patientNum_toRemove = atoi(input)) < 1 || patientNum_toRemove > lineCounter)
+    {
+        printf("\nInvalid number Input!");
+        return;
+    }
+
+    if(checkFile(pPatients, PATIENTS_FPATH) != 1)
+    {
+        printf("\nSorry, an Error has ocurred :/");
+        return;
+    }
+
+    //creates a new file to replace the old one
+    pPatients = fopen(PATIENTS_FPATH, "r");
+    pTemp = fopen(TEMP_FPATH, "w"); 
+    lineCounter = 0;
+
+    while //reads the old file
+    (
+        fscanf(pPatients, "%s %s %c %s %s\n", &inFile.name, &inFile.id_num, &inFile.sex, 
+        &inFile.age, &inFile.telephone) != EOF
+    )
+    {
+        lineCounter++;
+        
+        //prints the content in new file without the removed patient
+        if(lineCounter != patientNum_toRemove)
+        {
+            fprintf(pTemp, "%s %s %c %s %s\n", inFile.name, inFile.id_num, inFile.sex, 
+            inFile.age, inFile.telephone);
+        }
+    }
+
+    fclose(pPatients);
+    fclose(pTemp);
+
+    //remove the old file and rename the new one, without that patient
+    remove(PATIENTS_FPATH);
+    rename(TEMP_FPATH, PATIENTS_FPATH);
+
+    printf("\nPatient Successfully Removed!");
 }
 
 void changePatient(void)
@@ -277,7 +358,7 @@ void showPatient(void)
 
     pPatients = fopen(PATIENTS_FPATH, "r");
 
-    while
+    while //reads each line in file and prints it
     (
         fscanf(pPatients, "%s %s %c %s %s\n", &inFile.name, &inFile.id_num, &inFile.sex, 
         &inFile.age, &inFile.telephone) != EOF
