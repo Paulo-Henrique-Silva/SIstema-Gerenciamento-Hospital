@@ -11,9 +11,9 @@
 #define TEMP_FPATH "temp.tmp"
 
 #define DEFAULT_PWD "2022\n"
-#define MAX_PATIENTSNUM 20
+#define MAX_PATIENTSNUM 10
 #define MAX_DOCTORSNUM 5
-#define MAX_APPOINTNUM 10
+#define MAX_APPOINTNUM 20
 
 enum menuOptions 
 {
@@ -520,7 +520,41 @@ void changeDoctor(void)
 
 void showDoctor(void)
 {
-    
+    int lineCounter = 0;
+    doctor inFile_doctor;
+
+    if(login() == 0)
+    {
+        printf("\nIncorrect Password!");
+        return;
+    }
+
+    system("cls");
+    printf("\t\t\t\t     DOCTORS LIST");
+    printf("\n\t\t\t--------------------------------------");
+
+    if(checkFile(pDoctors, DOCTORS_FPATH) != 1)
+    {
+        printf("\n\nSorry, it seems it does not have a Doctor yet :/");
+        return;
+    }
+
+    pDoctors = fopen(DOCTORS_FPATH, "r");
+
+    while //reads each line in file and prints it
+    (
+        fscanf(pDoctors, "%s %s %s\n", &inFile_doctor.name, &inFile_doctor.id_num,
+        &inFile_doctor.age) != EOF
+    )
+    {
+        lineCounter++;
+        printf("\n\n\t\t\t    %d - Name: %s - Age: %s", lineCounter, inFile_doctor.name, 
+        inFile_doctor.age);
+    }
+
+    fclose(pDoctors);
+
+    printf("\n\nPress anything to continue.");
 }
 
 void changePwd(void)
