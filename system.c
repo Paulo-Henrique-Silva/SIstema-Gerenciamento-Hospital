@@ -510,7 +510,86 @@ void addDoctor(void)
 
 void removeDoctor(void)
 {
+    doctor inFile_doctor;
+    int lineCounter = 0, docNum_toRemove = 0;
+    char input[1024] = {'\0'};
 
+    if(login() == 0)
+    {
+        printf("\nIncorrect Password!");
+        return;
+    }
+
+    system("cls");
+    printf("\t\t\t\t    REMOVING A DOCTOR");
+    printf("\n\t\t\t--------------------------------------");
+
+    if(checkFile(pDoctors, DOCTORS_FPATH) != 1)
+    {
+        printf("\n\nSorry, it seems it does not have a Doctor yet :/");
+        return;
+    }
+
+    pDoctors = fopen(DOCTORS_FPATH, "r");
+
+    while //reads each line in file and prints it
+    (
+        fscanf(pDoctors, "%s %s %s\n", &inFile_doctor.name, &inFile_doctor.id_num,
+        &inFile_doctor.age) != EOF
+    )
+    {
+        lineCounter++;
+        printf("\n\n\t\t\t    %d - Name: %s - Age: %s", lineCounter, inFile_doctor.name, 
+        inFile_doctor.age);
+    }
+
+    fclose(pDoctors);
+
+    printf("\n\nType the Doctor Number to remove: ");
+    fgets(input, 1024, stdin);
+    
+    //gets a str and converts to an integer
+    if((docNum_toRemove = atoi(input)) < 1 || docNum_toRemove > lineCounter)
+    {
+        printf("\nInvalid number Input!");
+        return;
+    }
+
+    if(checkFile(pDoctors, DOCTORS_FPATH) != 1)
+    {
+        printf("\nSorry, an Error has ocurred :/");
+        return;
+    }
+
+    //creates a new file to replace the old one
+    pDoctors = fopen(DOCTORS_FPATH, "r");
+    pTemp = fopen(TEMP_FPATH, "w"); 
+    lineCounter = 0;
+
+    while //reads the old file
+    (
+        fscanf(pDoctors, "%s %s %s\n", &inFile_doctor.name, &inFile_doctor.id_num, 
+        &inFile_doctor.age) != EOF
+    )
+    {
+        lineCounter++;
+        
+        //prints the content in new file without the removed doctor
+        if(lineCounter != docNum_toRemove)
+        {
+            fprintf(pTemp, "%s %s %s\n", inFile_doctor.name, inFile_doctor.id_num, 
+            inFile_doctor.age);
+        }
+    }
+
+    fclose(pDoctors);
+    fclose(pTemp);
+
+    //remove the old file and rename the new one, without that doctor
+    remove(DOCTORS_FPATH);
+    rename(TEMP_FPATH, DOCTORS_FPATH);
+
+    printf("\nDoctor Successfully Removed!");
 }
 
 void changeDoctor(void)
