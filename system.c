@@ -256,7 +256,41 @@ void changePatient(void)
 
 void showPatient(void)
 {
+    int lineCounter = 0;
+    patient inFile;
 
+    if(login() == 0)
+    {
+        printf("\nIncorrect Password!");
+        return;
+    }
+
+    system("cls");
+    printf("\t\t\t\t     PATIENTS LIST");
+    printf("\n\t\t\t--------------------------------------");
+
+    if(checkFile(pPatients, PATIENTS_FPATH) != 1)
+    {
+        printf("\n\nSorry, it seems it does not have a Patient yet :/");
+        return;
+    }
+
+    pPatients = fopen(PATIENTS_FPATH, "r");
+
+    while
+    (
+        fscanf(pPatients, "%s %s %c %s %s\n", &inFile.name, &inFile.id_num, &inFile.sex, 
+        &inFile.age, &inFile.telephone) != EOF
+    )
+    {
+        lineCounter++;
+        printf("\n\n\t\t    %d - Name: %s - Age: %s - Telephone: %s", lineCounter, inFile.name, 
+        inFile.age, inFile.telephone);
+    }
+
+    fclose(pPatients);
+
+    printf("\n\nPress anything to continue.");
 }
 
 void addDoctor(void)
@@ -300,7 +334,7 @@ void changePwd(void)
     fprintf(pAdm, "%s", newPwd);
     fclose(pAdm);
 
-    printf("\nPassoword Updated!");
+    printf("\nPassword Updated!");
 }
 
 void help(void)
