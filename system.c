@@ -369,7 +369,42 @@ void changeAppoint(void)
 
 void showAppoint(void)
 {
+    int lineCounter = 0;
+    appointment inFile_appoint;
 
+    if(login() == 0)
+    {
+        printf("\nIncorrect Password!");
+        return;
+    }
+
+    system("cls");
+    printf("\t\t\t\t     APPOINTMENTS LIST");
+    printf("\n\t\t\t--------------------------------------");
+
+    if(checkFile(pAppoint, APPOINT_FPATH) != 1)
+    {
+        printf("\n\nSorry, it seems it does not have an Appointment yet :/");
+        return;
+    }
+
+    pAppoint = fopen(APPOINT_FPATH, "r");
+
+    while //prints appointments list
+    (
+        fscanf(pAppoint, "%c %s %s %s %s\n", &inFile_appoint.type, &inFile_appoint.date, 
+        &inFile_appoint.time, &inFile_appoint.patientName, &inFile_appoint.doctorName) != EOF
+    )
+    {
+        lineCounter++;
+        printf("\n\n\t%d - Type: %c - Date and Time: %s - %s - Patient: %s - Doctor: %s", 
+        lineCounter, inFile_appoint.type, inFile_appoint.date, inFile_appoint.time, 
+        inFile_appoint.patientName, inFile_appoint.doctorName);
+    }
+
+    fclose(pAppoint);
+
+    printf("\n\nPress anything to continue.");
 }
 
 void addPatient(void)
