@@ -151,21 +151,21 @@ int menu(void)
     printf("\t\t\t       HOSPITAL MANAGEMENT SYSTEM");
     printf("\n\t\t\t--------------------------------------");
 
-    printf("\n\n\t\t\t\t[1] - Add an Appointment");
-    printf("\n\t\t\t\t[2] - Remove an Appointment");
-    printf("\n\t\t\t\t[3] - Change an Appointment data");
-    printf("\n\t\t\t\t[4] - Show Appointments List");
-    printf("\n\t\t\t\t[5] - Add a Patient");
-    printf("\n\t\t\t\t[6] - Remove a Patient");
-    printf("\n\t\t\t\t[7] - Change a Patient data");
-    printf("\n\t\t\t\t[8] - Show Patients List");
-    printf("\n\t\t\t\t[9] - Add a Doctor");
-    printf("\n\t\t\t\t[10] - Remove a Doctor");
-    printf("\n\t\t\t\t[11] - Change a Doctor data");
-    printf("\n\t\t\t\t[12] - Show Doctors List");
-    printf("\n\t\t\t\t[13] - Change Administrator Password");
-    printf("\n\t\t\t\t[14] - Help");
-    printf("\n\t\t\t\t[15] - Exit");
+    printf("\n\n\t\t\t      [1] - Add an Appointment");
+    printf("\n\t\t\t      [2] - Remove an Appointment");
+    printf("\n\t\t\t      [3] - Change an Appointment data");
+    printf("\n\t\t\t      [4] - Show Appointments List");
+    printf("\n\t\t\t      [5] - Add a Patient");
+    printf("\n\t\t\t      [6] - Remove a Patient");
+    printf("\n\t\t\t      [7] - Change a Patient data");
+    printf("\n\t\t\t      [8] - Show Patients List");
+    printf("\n\t\t\t      [9] - Add a Doctor");
+    printf("\n\t\t\t      [10] - Remove a Doctor");
+    printf("\n\t\t\t      [11] - Change a Doctor data");
+    printf("\n\t\t\t      [12] - Show Doctors List");
+    printf("\n\t\t\t      [13] - Change Administrator Password");
+    printf("\n\t\t\t      [14] - Help");
+    printf("\n\t\t\t      [15] - Exit");
 
     printf("\n\nType the Operation: ");
     fgets(input, 1024, stdin);
@@ -189,7 +189,7 @@ void addAppoint(void)
     }
 
     system("cls");
-    printf("\t\t\t\t   ADDING AN APPOINTMENT");
+    printf("\t\t\t\t ADDING AN APPOINTMENT");
     printf("\n\t\t\t--------------------------------------");
 
     //checks the amount of Appointments in System
@@ -359,7 +359,81 @@ void addAppoint(void)
 
 void removeAppoint(void)
 {
+    appointment inFile_appoint;
 
+    int lineCounter = 0, appointNum_toRemove = 0;
+    char input[1024] = {'\0'}, lineIn_file[1024] = {'\0'};
+
+    if(login() == 0)
+    {
+        printf("\nIncorrect Password!");
+        return;
+    }
+
+    system("cls");
+    printf("\t\t\t\tREMOVING AN APPOINTMENT");
+    printf("\n\t\t\t--------------------------------------");
+
+    if(checkFile(pAppoint, APPOINT_FPATH) != 1)
+    {
+        printf("\n\nSorry, it seems it does not have an Appointment yet :/");
+        return;
+    }
+
+    pAppoint = fopen(APPOINT_FPATH, "r");
+
+    while //prints appointments list
+    (
+        fscanf(pAppoint, "%c %s %s %s %s\n", &inFile_appoint.type, &inFile_appoint.date, 
+        &inFile_appoint.time, &inFile_appoint.patientName, &inFile_appoint.doctorName) != EOF
+    )
+    {
+        lineCounter++;
+        printf("\n\n\t%d - Type: %c - Date and Time: %s - %s - Patient: %s - Doctor: %s", 
+        lineCounter, inFile_appoint.type, inFile_appoint.date, inFile_appoint.time, 
+        inFile_appoint.patientName, inFile_appoint.doctorName);
+    }
+
+    fclose(pAppoint);
+
+    printf("\n\nType the Appointment Number to remove: ");
+    fgets(input, 1024, stdin);
+    
+    //gets a str and converts to an integer
+    if((appointNum_toRemove = atoi(input)) < 1 || appointNum_toRemove > lineCounter)
+    {
+        printf("\nInvalid number Input!");
+        return;
+    }
+
+    if(checkFile(pAppoint, APPOINT_FPATH) != 1)
+    {
+        printf("\nSorry, an Error has ocurred :/");
+        return;
+    }
+
+    //creates a new file to replace the old one
+    pAppoint = fopen(APPOINT_FPATH, "r");
+    pTemp = fopen(TEMP_FPATH, "w"); 
+    lineCounter = 0;
+
+    while(fgets(lineIn_file, 1024, pAppoint) != NULL)
+    {
+        lineCounter++;
+        
+        //prints the content in new file without the removed doctor
+        if(lineCounter != appointNum_toRemove)
+            fprintf(pTemp, "%s", lineIn_file);
+    }
+
+    fclose(pAppoint);
+    fclose(pTemp);
+
+    //remove the old file and rename the new one, without that patient
+    remove(APPOINT_FPATH);
+    rename(TEMP_FPATH, APPOINT_FPATH);
+
+    printf("\nAppointment Successfully Removed!");
 }
 
 void changeAppoint(void)
@@ -369,8 +443,8 @@ void changeAppoint(void)
 
 void showAppoint(void)
 {
-    int lineCounter = 0;
     appointment inFile_appoint;
+    int lineCounter = 0;
 
     if(login() == 0)
     {
@@ -379,7 +453,7 @@ void showAppoint(void)
     }
 
     system("cls");
-    printf("\t\t\t\t     APPOINTMENTS LIST");
+    printf("\t\t\t\t   APPOINTMENTS LIST");
     printf("\n\t\t\t--------------------------------------");
 
     if(checkFile(pAppoint, APPOINT_FPATH) != 1)
@@ -409,8 +483,8 @@ void showAppoint(void)
 
 void addPatient(void)
 {
-    char input[1024] = {'\0'};
     patient newPatient;
+    char input[1024] = {'\0'};
 
     if(login() == 0)
     {
@@ -520,7 +594,7 @@ void removePatient(void)
 {
     patient inFile_patient;
     int lineCounter = 0, patientNum_toRemove = 0;
-    char input[1024] = {'\0'};
+    char input[1024] = {'\0'}, lineIn_file[1024] = {'\0'};
 
     if(login() == 0)
     {
@@ -529,7 +603,7 @@ void removePatient(void)
     }
 
     system("cls");
-    printf("\t\t\t\t    REMOVING A PATIENT");
+    printf("\t\t\t\t  REMOVING A PATIENT");
     printf("\n\t\t\t--------------------------------------");
 
     if(checkFile(pPatients, PATIENTS_FPATH) != 1)
@@ -574,20 +648,13 @@ void removePatient(void)
     pTemp = fopen(TEMP_FPATH, "w"); 
     lineCounter = 0;
 
-    while //reads the old file
-    (
-        fscanf(pPatients, "%s %s %c %s %s\n", &inFile_patient.name, &inFile_patient.id_num, 
-        &inFile_patient.sex, &inFile_patient.age, &inFile_patient.telephone) != EOF
-    )
+    while(fgets(lineIn_file, 1024, pPatients) != NULL)
     {
         lineCounter++;
         
-        //prints the content in new file without the removed patient
+        //prints the content in new file without the removed doctor
         if(lineCounter != patientNum_toRemove)
-        {
-            fprintf(pTemp, "%s %s %c %s %s\n", inFile_patient.name, inFile_patient.id_num, 
-            inFile_patient.sex, inFile_patient.age, inFile_patient.telephone);
-        }
+            fprintf(pTemp, "%s", lineIn_file);
     }
 
     fclose(pPatients);
@@ -607,8 +674,8 @@ void changePatient(void)
 
 void showPatient(void)
 {
-    int lineCounter = 0;
     patient inFile_patient;
+    int lineCounter = 0;
 
     if(login() == 0)
     {
@@ -646,8 +713,8 @@ void showPatient(void)
 
 void addDoctor(void)
 {
-    char input[1024] = {'\0'};
     doctor newDoc;
+    char input[1024] = {'\0'};
 
     if(login() == 0)
     {
@@ -725,7 +792,7 @@ void removeDoctor(void)
 {
     doctor inFile_doctor;
     int lineCounter = 0, docNum_toRemove = 0;
-    char input[1024] = {'\0'};
+    char input[1024] = {'\0'}, lineIn_file[1024] = {'\0'};
 
     if(login() == 0)
     {
@@ -734,7 +801,7 @@ void removeDoctor(void)
     }
 
     system("cls");
-    printf("\t\t\t\t    REMOVING A DOCTOR");
+    printf("\t\t\t\t  REMOVING A DOCTOR");
     printf("\n\t\t\t--------------------------------------");
 
     if(checkFile(pDoctors, DOCTORS_FPATH) != 1)
@@ -779,20 +846,14 @@ void removeDoctor(void)
     pTemp = fopen(TEMP_FPATH, "w"); 
     lineCounter = 0;
 
-    while //reads the old file
-    (
-        fscanf(pDoctors, "%s %s %s\n", &inFile_doctor.name, &inFile_doctor.id_num, 
-        &inFile_doctor.age) != EOF
-    )
+    //reads the old file
+    while(fgets(lineIn_file, 1024, pDoctors) != NULL)
     {
         lineCounter++;
         
         //prints the content in new file without the removed doctor
         if(lineCounter != docNum_toRemove)
-        {
-            fprintf(pTemp, "%s %s %s\n", inFile_doctor.name, inFile_doctor.id_num, 
-            inFile_doctor.age);
-        }
+            fprintf(pTemp, "%s", lineIn_file);
     }
 
     fclose(pDoctors);
@@ -812,8 +873,8 @@ void changeDoctor(void)
 
 void showDoctor(void)
 {
-    int lineCounter = 0;
     doctor inFile_doctor;
+    int lineCounter = 0;
 
     if(login() == 0)
     {
