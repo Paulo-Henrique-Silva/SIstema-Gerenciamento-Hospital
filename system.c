@@ -421,7 +421,7 @@ void removeAppoint(void)
     {
         lineCounter++;
         
-        //prints the content in new file without the removed doctor
+        //prints the content in new file without the removed appointment
         if(lineCounter != appointNum_toRemove)
             fprintf(pTemp, "%s", lineIn_file);
     }
@@ -429,7 +429,7 @@ void removeAppoint(void)
     fclose(pAppoint);
     fclose(pTemp);
 
-    //remove the old file and rename the new one, without that patient
+    //remove the old file and rename the new one, without that appointment
     remove(APPOINT_FPATH);
     rename(TEMP_FPATH, APPOINT_FPATH);
 
