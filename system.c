@@ -20,7 +20,7 @@ enum menuOptions
     AddAppoint_num = 1, RemoveAppoint_num, ChangeAppoint_num, ShowAppoint_num,
     AddPatient_num, RemovePatient_num, ChangePatient_num, ShowPatient_num,
     AddDoctor_num, RemoveDoctor_num, ChangeDoctor_num, ShowDoctor_num,
-    Changepwd, Info_num, ExitProgram_num
+    Changepwd_num, Info_num, ExitProgram_num
 };
 
 FILE *pPatients, *pDoctors, *pAppoint, *pAdm, *pTemp;
@@ -37,7 +37,7 @@ typedef struct doctorInfo
 
 typedef struct appointInfo
 {
-    char type[2], date[10], time[6], patientName[45], DoctorName[45];
+    char type, date[12], time[7], patientName[45], doctorName[45];
 } appointment;
 
 int menu(void);
@@ -118,7 +118,7 @@ int main()
                 showDoctor();
                 break;
             
-            case Changepwd:
+            case Changepwd_num:
                 changePwd();
                 break;
             
@@ -175,7 +175,186 @@ int menu(void)
 
 void addAppoint(void)
 {
+    appointment newAppoint;
+    patient inFile_patient;
+    doctor inFile_doctor;
 
+    int lineCounter = 0, patientNum_toSelect = 0, doctorNum_toSelect = 0;
+    char input[1024] = {'\0'};
+
+    if(login() == 0)
+    {
+        printf("\nIncorrect Password!");
+        return;
+    }
+
+    system("cls");
+    printf("\t\t\t\t   ADDING AN APPOINTMENT");
+    printf("\n\t\t\t--------------------------------------");
+
+    //checks the amount of Appointments in System
+    //if it returns 0, there is no need to block the program, because it is adding a new one
+    if(amountOf_lines(pAppoint, APPOINT_FPATH) >= MAX_APPOINTNUM)
+    {
+        printf("\n\nSorry, max Amount of Appointments reached (%d)!", MAX_APPOINTNUM);
+        return;
+    }
+
+    if
+    (
+        amountOf_lines(pPatients, PATIENTS_FPATH) == 0 || 
+        amountOf_lines(pDoctors, DOCTORS_FPATH) == 0
+    )
+    {
+        printf("\n\nSorry, it needs at least 1 Patient and 1 Doctor in System to Create an Appointment.");
+        return;
+    }
+
+    printf("\n\nType the Appointment Type(F - Follow Up | N - Normal): ");
+    fgets(input, 1024, stdin);
+    removeExtra_chars(input);
+
+    if((newAppoint.type = toupper(input[0])) != 'F' && newAppoint.type != 'N')
+    {
+        printf("\nInvalid Type Input!");
+        return;
+    }
+
+    printf("\nType the Appointment Date(yyyy/mm/dd): ");
+    fgets(input, sizeof(newAppoint.date), stdin);
+    removeExtra_chars(strcpy(newAppoint.date, input));
+
+    printf("\nType the Appointment Time(hh:mm): ");
+    fgets(input, sizeof(newAppoint.time), stdin);
+    removeExtra_chars(strcpy(newAppoint.time, input));
+
+    system("cls");
+    printf("\t\t\t\t   ADDING AN APPOINTMENT");
+    printf("\n\t\t\t--------------------------------------");
+
+    if(checkFile(pPatients, PATIENTS_FPATH) != 1)
+    {
+        printf("\n\nSorry, it seems it does not have a Patient yet :/");
+        return;
+    }
+    
+    pPatients = fopen(PATIENTS_FPATH, "r");
+
+    while //shows patient list
+    (
+        fscanf(pPatients, "%s %s %c %s %s\n", &inFile_patient.name, &inFile_patient.id_num, 
+        &inFile_patient.sex, &inFile_patient.age, &inFile_patient.telephone) != EOF
+    )
+    {
+        lineCounter++;
+        printf("\n\n\t\t\t     %d - Name: %s - Id: %s", lineCounter, inFile_patient.name, 
+        inFile_patient.id_num);
+    }
+
+    fclose(pPatients);
+
+    printf("\n\nSelect the Appointment's Patient Number: ");
+    fgets(input, 1024, stdin);
+    
+    //gets a str and converts to an integer
+    if((patientNum_toSelect = atoi(input)) < 1 || patientNum_toSelect > lineCounter)
+    {
+        printf("\nInvalid number Input!");
+        return;
+    }
+
+    if(checkFile(pPatients, PATIENTS_FPATH) != 1)
+    {
+        printf("\n\nSorry, an Error has ocurred.");
+        return;
+    }
+
+    pPatients = fopen(PATIENTS_FPATH, "r");
+    lineCounter = 0;
+
+    while //gets the patient's name in file
+    (
+        fscanf(pPatients, "%s %s %c %s %s\n", &inFile_patient.name, &inFile_patient.id_num, 
+        &inFile_patient.sex, &inFile_patient.age, &inFile_patient.telephone) != EOF
+    )
+    {
+        lineCounter++;
+
+        if(lineCounter == patientNum_toSelect)
+            strcpy(newAppoint.patientName, inFile_patient.name);
+    }
+
+    fclose(pPatients);
+
+    system("cls");
+    printf("\t\t\t\t   ADDING AN APPOINTMENT");
+    printf("\n\t\t\t--------------------------------------");
+
+    if(checkFile(pDoctors, DOCTORS_FPATH) != 1)
+    {
+        printf("\n\nSorry, it seems it does not have a Doctor yet :/");
+        return;
+    }
+
+    pDoctors = fopen(DOCTORS_FPATH, "r");
+    lineCounter = 0;
+
+    while //prints doctor list
+    (
+        fscanf(pDoctors, "%s %s %s\n", &inFile_doctor.name, &inFile_doctor.id_num,
+        &inFile_doctor.age) != EOF
+    )
+    {
+        lineCounter++;
+        printf("\n\n\t\t\t    %d - Name: %s - Id: %s", lineCounter, inFile_doctor.name, 
+        inFile_doctor.id_num);
+    }
+
+    fclose(pDoctors);
+
+    printf("\n\nType the Appointment's Doctor Number: ");
+    fgets(input, 1024, stdin);
+    
+    //gets a str and converts to an integer
+    if((doctorNum_toSelect = atoi(input)) < 1 || doctorNum_toSelect > lineCounter)
+    {
+        printf("\nInvalid number Input!");
+        return;
+    }
+
+    if(checkFile(pDoctors, DOCTORS_FPATH) != 1)
+    {
+        printf("\n\nSorry, an Error has ocurred");
+        return;
+    }
+
+    pDoctors = fopen(DOCTORS_FPATH, "r");
+    lineCounter = 0;
+
+    while //gets doctor's name in file
+    (
+        fscanf(pDoctors, "%s %s %s\n", &inFile_doctor.name, &inFile_doctor.id_num,
+        &inFile_doctor.age) != EOF
+    )
+    {
+        lineCounter++;
+
+        if(lineCounter == doctorNum_toSelect)
+            strcpy(newAppoint.doctorName, inFile_doctor.name);
+    }
+
+    fclose(pDoctors);
+
+    //add the content to file
+    //how it is adding, there is no need to block the program
+    checkFile(pAppoint, APPOINT_FPATH);
+
+    pAppoint = fopen(APPOINT_FPATH, "a");
+    fprintf(pAppoint, "%c %s %s %s %s\n", newAppoint.type, newAppoint.date, newAppoint.time,
+    newAppoint.patientName, newAppoint.doctorName);
+    fclose(pAppoint);
+
+    printf("\nNew Appointment Successfully Added!");
 }
 
 void removeAppoint(void)
@@ -209,7 +388,6 @@ void addPatient(void)
     printf("\n\t\t\t--------------------------------------");
 
     //checks the amount of Patients in System
-    checkFile(pPatients, PATIENTS_FPATH);
     if(amountOf_lines(pPatients, PATIENTS_FPATH) >= MAX_PATIENTSNUM)
     {
         printf("\n\nSorry, max Amount of Patients reached (%d)!", MAX_PATIENTSNUM);
@@ -255,6 +433,7 @@ void addPatient(void)
     fgets(input, 1024, stdin);
     removeExtra_chars(input);
 
+    //puts in upper case and checks the first Char
     if((newPatient.sex = toupper(input[0])) != 'F' && newPatient.sex != 'M')
     {
         printf("\nInvalid Sex Input!");
@@ -446,7 +625,6 @@ void addDoctor(void)
     printf("\n\t\t\t--------------------------------------");
 
     //checks the amount of Doctors in System
-    checkFile(pDoctors, DOCTORS_FPATH);
     if(amountOf_lines(pDoctors, DOCTORS_FPATH) >= MAX_DOCTORSNUM)
     {
         printf("\n\nSorry, max Amount of Doctors reached (%d)!", MAX_DOCTORSNUM);
@@ -532,7 +710,7 @@ void removeDoctor(void)
 
     pDoctors = fopen(DOCTORS_FPATH, "r");
 
-    while //reads each line in file and prints it
+    while //reads each line in file and prints doctor list
     (
         fscanf(pDoctors, "%s %s %s\n", &inFile_doctor.name, &inFile_doctor.id_num,
         &inFile_doctor.age) != EOF
