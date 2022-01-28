@@ -17,9 +17,9 @@
 
 enum menuOptions 
 {
-    AddAppoint_num = 1, RemoveAppoint_num, ChangeAppoint_num, ShowAppoint_num,
-    AddPatient_num, RemovePatient_num, ChangePatient_num, ShowPatient_num,
-    AddDoctor_num, RemoveDoctor_num, ChangeDoctor_num, ShowDoctor_num,
+    AddAppoint_num = 1, RemoveAppoint_num, ShowAppoint_num,
+    AddPatient_num, RemovePatient_num, ShowPatient_num,
+    AddDoctor_num, RemoveDoctor_num, ShowDoctor_num,
     Changepwd_num, Info_num, ExitProgram_num
 };
 
@@ -77,10 +77,6 @@ int main()
             case RemoveAppoint_num:
                 removeAppoint();
                 break;
-
-            case ChangeAppoint_num:
-                changeAppoint();
-                break;
             
             case ShowAppoint_num:
                 showAppoint();
@@ -93,10 +89,6 @@ int main()
             case RemovePatient_num:
                 removePatient();
                 break;
-
-            case ChangePatient_num:
-                changePatient();
-                break;
             
             case ShowPatient_num:
                 showPatient();
@@ -108,10 +100,6 @@ int main()
 
             case RemoveDoctor_num:
                 removeDoctor();
-                break;
-
-            case ChangeDoctor_num:
-                changeDoctor();
                 break;
             
             case ShowDoctor_num:
@@ -153,19 +141,16 @@ int menu(void)
 
     printf("\n\n\t\t\t      [1] - Add an Appointment");
     printf("\n\t\t\t      [2] - Remove an Appointment");
-    printf("\n\t\t\t      [3] - Change an Appointment data");
-    printf("\n\t\t\t      [4] - Show Appointments List");
-    printf("\n\t\t\t      [5] - Add a Patient");
-    printf("\n\t\t\t      [6] - Remove a Patient");
-    printf("\n\t\t\t      [7] - Change a Patient data");
-    printf("\n\t\t\t      [8] - Show Patients List");
-    printf("\n\t\t\t      [9] - Add a Doctor");
-    printf("\n\t\t\t      [10] - Remove a Doctor");
-    printf("\n\t\t\t      [11] - Change a Doctor data");
-    printf("\n\t\t\t      [12] - Show Doctors List");
-    printf("\n\t\t\t      [13] - Change Administrator Password");
-    printf("\n\t\t\t      [14] - Help");
-    printf("\n\t\t\t      [15] - Exit");
+    printf("\n\t\t\t      [3] - Show Appointments List");
+    printf("\n\t\t\t      [4] - Add a Patient");
+    printf("\n\t\t\t      [5] - Remove a Patient");
+    printf("\n\t\t\t      [6] - Show Patients List");
+    printf("\n\t\t\t      [7] - Add a Doctor");
+    printf("\n\t\t\t      [8] - Remove a Doctor");
+    printf("\n\t\t\t      [9] - Show Doctors List");
+    printf("\n\t\t\t      [10] - Change Administrator Password");
+    printf("\n\t\t\t      [11] - Help");
+    printf("\n\t\t\t      [12] - Exit");
 
     printf("\n\nType the Operation: ");
     fgets(input, 1024, stdin);
@@ -224,9 +209,35 @@ void addAppoint(void)
     fgets(input, sizeof(newAppoint.date), stdin);
     removeExtra_chars(strcpy(newAppoint.date, input));
 
+    for(int i = 0; i < strlen(newAppoint.date); i++)
+    {
+        if //checks if it has just numbers in the string
+        (
+            (newAppoint.date[i] - '0' < 0 || newAppoint.date[i] - '0' > 9) && 
+            newAppoint.date[i] != '/'
+        )
+        {
+            printf("\nInvalid Date!");
+            return;
+        }
+    }
+
     printf("\nType the Appointment Time(hh:mm): ");
     fgets(input, sizeof(newAppoint.time), stdin);
     removeExtra_chars(strcpy(newAppoint.time, input));
+
+    for(int i = 0; i < strlen(newAppoint.time); i++)
+    {
+        if 
+        (
+            (newAppoint.time[i] - '0' < 0 || newAppoint.time[i] - '0' > 9) && 
+            newAppoint.time[i] != ':'
+        )
+        {
+            printf("\nInvalid Time!");
+            return;
+        }
+    }
 
     system("cls");
     printf("\t\t\t\t   ADDING AN APPOINTMENT");
@@ -434,11 +445,6 @@ void removeAppoint(void)
     rename(TEMP_FPATH, APPOINT_FPATH);
 
     printf("\nAppointment Successfully Removed!");
-}
-
-void changeAppoint(void)
-{
-
 }
 
 void showAppoint(void)
@@ -667,11 +673,6 @@ void removePatient(void)
     printf("\nPatient Successfully Removed!");
 }
 
-void changePatient(void)
-{
-
-}
-
 void showPatient(void)
 {
     patient inFile_patient;
@@ -864,11 +865,6 @@ void removeDoctor(void)
     rename(TEMP_FPATH, DOCTORS_FPATH);
 
     printf("\nDoctor Successfully Removed!");
-}
-
-void changeDoctor(void)
-{
-
 }
 
 void showDoctor(void)
