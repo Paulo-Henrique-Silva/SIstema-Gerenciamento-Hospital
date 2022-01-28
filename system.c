@@ -61,6 +61,7 @@ int login(void);
 void removeExtra_chars(char *string);
 int checkFile(FILE *pFile, char fPath[]);
 int amountOf_lines(FILE *pFile, char fPath[]);
+int isA_validId(char id[]);
 
 int main()
 {
@@ -544,6 +545,12 @@ void addPatient(void)
         }
     }
 
+    if(isA_validId(newPatient.id_num) == 0)
+    {
+        printf("\nThis Id number already exist!");
+        return;
+    }
+
     printf("\nType the new Patient Sex(F - Female | M - Male): ");
     fgets(input, 1024, stdin);
     removeExtra_chars(input);
@@ -766,6 +773,12 @@ void addDoctor(void)
             printf("\nInvalid Id!");
             return;
         }
+    }
+
+    if(isA_validId(newDoc.id_num) == 0)
+    {
+        printf("\nThis Id number already exist!");
+        return;
     }
 
     printf("\nType the new Doctor Age: ");
@@ -1017,7 +1030,7 @@ int checkFile(FILE *pFile, char fPath[])
 }
 
 //Returns the amount of line in a file.
-//It will return 0, if the file does not exist
+//It will return 0, if the file does not exist or is empty
 int amountOf_lines(FILE *pFile, char fPath[])
 {
     int amount = 0;
@@ -1029,4 +1042,40 @@ int amountOf_lines(FILE *pFile, char fPath[])
     fclose(pFile);
 
     return amount;
+}
+
+/*
+Returns 1, if the id is valid, otherwise will return 0. 
+- Doctors and Patients have ids.
+- A Doctor cannot have a same id of a Patient and vice-versa
+
+Checks the files before use it
+*/
+int isA_validId(char id[])
+{
+    doctor inFile_doctor;
+    patient inFile_patient;
+
+    pDoctors = fopen(DOCTORS_FPATH, "r");
+    pPatients = fopen(PATIENTS_FPATH, "r");
+
+    while //reads the files
+    (
+        fscanf(pDoctors, "%s %s %s\n", &inFile_doctor.name, &inFile_doctor.id_num,
+        &inFile_doctor.age) != EOF &&
+        fscanf(pPatients, "%s %s %c %s %s\n", &inFile_patient.name, &inFile_patient.id_num, 
+        &inFile_patient.sex, &inFile_patient.age, &inFile_patient.telephone) != EOF 
+    )
+    {
+        if(strcmp(inFile_doctor.id_num, id) == 0 || strcmp(inFile_patient.id_num, id) == 0)
+        {
+            fclose(pDoctors);
+            fclose(pPatients);
+            return 0;
+        }
+    }
+
+    fclose(pDoctors);
+    fclose(pPatients);
+    return 1;
 }
