@@ -28,16 +28,18 @@ FILE *pPatients, *pDoctors, *pAppoint, *pAdm, *pTemp;
 typedef struct patientsInfo
 {
     char name[45], id_num[9], sex, telephone[12], age[4];
+    int amountOf_appoint;
 } patient;
 
 typedef struct doctorInfo
 {
     char name[45], id_num[9], age[4];
+    int amountOf_appoint;
 } doctor;
 
 typedef struct appointInfo
 {
-    char type, date[12], time[7], patientName[45], doctorName[45];
+    char type, date[12], time[7], patientName[45], patientId[9], doctorName[45], doctorId[9];
 } appointment;
 
 int menu(void);
@@ -254,8 +256,9 @@ void addAppoint(void)
 
     while //shows patient list
     (
-        fscanf(pPatients, "%s %s %c %s %s\n", &inFile_patient.name, &inFile_patient.id_num, 
-        &inFile_patient.sex, &inFile_patient.age, &inFile_patient.telephone) != EOF
+        fscanf(pPatients, "%s %s %c %s %s %d\n", &inFile_patient.name, &inFile_patient.id_num, 
+        &inFile_patient.sex, &inFile_patient.age, &inFile_patient.telephone, 
+        &inFile_patient.amountOf_appoint) != EOF
     )
     {
         lineCounter++;
@@ -275,29 +278,6 @@ void addAppoint(void)
         return;
     }
 
-    if(checkFile(pPatients, PATIENTS_FPATH) != 1)
-    {
-        printf("\n\nSorry, an Error has ocurred.");
-        return;
-    }
-
-    pPatients = fopen(PATIENTS_FPATH, "r");
-    lineCounter = 0;
-
-    while //gets the patient's name in file
-    (
-        fscanf(pPatients, "%s %s %c %s %s\n", &inFile_patient.name, &inFile_patient.id_num, 
-        &inFile_patient.sex, &inFile_patient.age, &inFile_patient.telephone) != EOF
-    )
-    {
-        lineCounter++;
-
-        if(lineCounter == patientNum_toSelect)
-            strcpy(newAppoint.patientName, inFile_patient.name);
-    }
-
-    fclose(pPatients);
-
     system("cls");
     printf("\t\t\t\t   ADDING AN APPOINTMENT");
     printf("\n\t\t\t--------------------------------------");
@@ -313,8 +293,8 @@ void addAppoint(void)
 
     while //prints doctor list
     (
-        fscanf(pDoctors, "%s %s %s\n", &inFile_doctor.name, &inFile_doctor.id_num,
-        &inFile_doctor.age) != EOF
+        fscanf(pDoctors, "%s %s %s %d\n", &inFile_doctor.name, &inFile_doctor.id_num,
+        &inFile_doctor.age, &inFile_doctor.amountOf_appoint) != EOF
     )
     {
         lineCounter++;
@@ -334,36 +314,93 @@ void addAppoint(void)
         return;
     }
 
-    if(checkFile(pDoctors, DOCTORS_FPATH) != 1)
+//update data in files
+    if(checkFile(pPatients, PATIENTS_FPATH) != 1 || checkFile(pDoctors, DOCTORS_FPATH) != 1)
     {
-        printf("\n\nSorry, an Error has ocurred");
+        printf("\n\nSorry, an Error has ocurred.");
         return;
     }
 
-    pDoctors = fopen(DOCTORS_FPATH, "r");
+    pPatients = fopen(PATIENTS_FPATH, "r");
+    pTemp = fopen(TEMP_FPATH, "w"); //creates a temp file to change the patients data
     lineCounter = 0;
 
-    while //gets doctor's name in file
+    while 
     (
-        fscanf(pDoctors, "%s %s %s\n", &inFile_doctor.name, &inFile_doctor.id_num,
-        &inFile_doctor.age) != EOF
+        fscanf(pPatients, "%s %s %c %s %s %d\n", &inFile_patient.name, &inFile_patient.id_num, 
+        &inFile_patient.sex, &inFile_patient.age, &inFile_patient.telephone, 
+        &inFile_patient.amountOf_appoint) != EOF
+    )
+    {
+        lineCounter++;
+
+        //if it is the same, add an appoint and gets their name and id
+        if(lineCounter == patientNum_toSelect)
+        {
+            fprintf(pTemp, "%s %s %c %s %s %d\n", inFile_patient.name, inFile_patient.id_num, 
+            inFile_patient.sex, inFile_patient.age, inFile_patient.telephone, 
+            inFile_patient.amountOf_appoint + 1);
+
+            strcpy(newAppoint.patientName, inFile_patient.name);
+            strcpy(newAppoint.patientId, inFile_patient.id_num);
+        }
+        else //else, just prints it
+        {
+            fprintf(pTemp, "%s %s %c %s %s %d\n", inFile_patient.name, inFile_patient.id_num, 
+            inFile_patient.sex, inFile_patient.age, inFile_patient.telephone, 
+            inFile_patient.amountOf_appoint);
+        }
+    }
+
+    fclose(pPatients);
+    fclose(pTemp); 
+
+    //removes the old file and renames the new one with the updated data
+    remove(PATIENTS_FPATH);
+    rename(TEMP_FPATH, PATIENTS_FPATH);
+
+//same logic
+    pDoctors = fopen(DOCTORS_FPATH, "r");
+    pTemp = fopen(TEMP_FPATH, "w"); 
+    lineCounter = 0;
+
+    while
+    (
+        fscanf(pDoctors, "%s %s %s %d\n", &inFile_doctor.name, &inFile_doctor.id_num,
+        &inFile_doctor.age, &inFile_doctor.amountOf_appoint) != EOF
     )
     {
         lineCounter++;
 
         if(lineCounter == doctorNum_toSelect)
+        {
+            fprintf(pTemp, "%s %s %s %d\n", inFile_doctor.name, inFile_doctor.id_num,
+            inFile_doctor.age, inFile_doctor.amountOf_appoint + 1);
+
             strcpy(newAppoint.doctorName, inFile_doctor.name);
+            strcpy(newAppoint.doctorId, inFile_doctor.id_num);
+        }
+        else
+        {
+            fprintf(pTemp, "%s %s %s %d\n", inFile_doctor.name, inFile_doctor.id_num,
+            inFile_doctor.age, inFile_doctor.amountOf_appoint);
+        }
     }
 
     fclose(pDoctors);
+    fclose(pTemp); 
+
+    remove(DOCTORS_FPATH);
+    rename(TEMP_FPATH, DOCTORS_FPATH);
 
     //add the content to file
     //how it is adding, there is no need to block the program
     checkFile(pAppoint, APPOINT_FPATH);
 
     pAppoint = fopen(APPOINT_FPATH, "a");
-    fprintf(pAppoint, "%c %s %s %s %s\n", newAppoint.type, newAppoint.date, newAppoint.time,
-    newAppoint.patientName, newAppoint.doctorName);
+    fprintf(pAppoint, "%c %s %s %s %s %s %s\n", newAppoint.type, newAppoint.date, 
+    newAppoint.time, newAppoint.patientName, newAppoint.patientId, newAppoint.doctorName,
+    newAppoint.doctorId);
     fclose(pAppoint);
 
     printf("\nNew Appointment Successfully Added!");
@@ -372,9 +409,12 @@ void addAppoint(void)
 void removeAppoint(void)
 {
     appointment inFile_appoint;
+    patient inFile_patient;
+    doctor inFile_doctor;
 
     int lineCounter = 0, appointNum_toRemove = 0;
-    char input[1024] = {'\0'}, lineIn_file[1024] = {'\0'};
+    char input[1024] = {'\0'}, lineIn_file[1024] = {'\0'}, 
+    docId_toUp[9] = {'\0'}, patientId_toUp[9] = {'\0'};
 
     if(login() == 0)
     {
@@ -396,8 +436,9 @@ void removeAppoint(void)
 
     while //prints appointments list
     (
-        fscanf(pAppoint, "%c %s %s %s %s\n", &inFile_appoint.type, &inFile_appoint.date, 
-        &inFile_appoint.time, &inFile_appoint.patientName, &inFile_appoint.doctorName) != EOF
+        fscanf(pAppoint, "%c %s %s %s %s %s %s\n", &inFile_appoint.type, &inFile_appoint.date, 
+        &inFile_appoint.time, &inFile_appoint.patientName, &inFile_appoint.patientId, 
+        &inFile_appoint.doctorName, &inFile_appoint.doctorId) != EOF
     )
     {
         lineCounter++;
@@ -418,7 +459,11 @@ void removeAppoint(void)
         return;
     }
 
-    if(checkFile(pAppoint, APPOINT_FPATH) != 1)
+    if
+    (
+        checkFile(pAppoint, APPOINT_FPATH) != 1 || checkFile(pPatients, PATIENTS_FPATH) != 1 || 
+        checkFile(pDoctors, DOCTORS_FPATH) != 1
+    )
     {
         printf("\nSorry, an Error has ocurred :/");
         return;
@@ -429,13 +474,27 @@ void removeAppoint(void)
     pTemp = fopen(TEMP_FPATH, "w"); 
     lineCounter = 0;
 
-    while(fgets(lineIn_file, 1024, pAppoint) != NULL)
+    while
+    (
+        fscanf(pAppoint, "%c %s %s %s %s %s %s\n", &inFile_appoint.type, &inFile_appoint.date, 
+        &inFile_appoint.time, &inFile_appoint.patientName, &inFile_appoint.patientId, 
+        &inFile_appoint.doctorName, &inFile_appoint.doctorId) != EOF
+    )
     {
         lineCounter++;
         
         //prints the content in new file without the removed appointment
         if(lineCounter != appointNum_toRemove)
-            fprintf(pTemp, "%s", lineIn_file);
+        {
+            fprintf(pTemp, "%c %s %s %s %s %s %s\n", inFile_appoint.type, inFile_appoint.date, 
+            inFile_appoint.time, inFile_appoint.patientName, inFile_appoint.patientId, 
+            inFile_appoint.doctorName, inFile_appoint.doctorId);
+        }
+        else //gets the ids to update later
+        {
+            strcpy(patientId_toUp, inFile_appoint.patientId);
+            strcpy(docId_toUp, inFile_appoint.doctorId);
+        }
     }
 
     fclose(pAppoint);
@@ -444,6 +503,67 @@ void removeAppoint(void)
     //remove the old file and rename the new one, without that appointment
     remove(APPOINT_FPATH);
     rename(TEMP_FPATH, APPOINT_FPATH);
+
+//update patients
+    pPatients = fopen(PATIENTS_FPATH, "r");
+    pTemp = fopen(TEMP_FPATH, "w");
+
+    while 
+    (
+        fscanf(pPatients, "%s %s %c %s %s %d\n", &inFile_patient.name, &inFile_patient.id_num, 
+        &inFile_patient.sex, &inFile_patient.age, &inFile_patient.telephone, 
+        &inFile_patient.amountOf_appoint) != EOF
+    )
+    {
+        //if it is the same, subtracts the removed appointment
+        if(strcmp(patientId_toUp, inFile_patient.id_num) == 0)
+        {
+            fprintf(pTemp, "%s %s %c %s %s %d\n", inFile_patient.name, inFile_patient.id_num, 
+            inFile_patient.sex, inFile_patient.age, inFile_patient.telephone, 
+            inFile_patient.amountOf_appoint - 1);
+        }
+        else //else, just prints it
+        {
+            fprintf(pTemp, "%s %s %c %s %s %d\n", inFile_patient.name, inFile_patient.id_num, 
+            inFile_patient.sex, inFile_patient.age, inFile_patient.telephone, 
+            inFile_patient.amountOf_appoint);
+        }
+    }
+
+    fclose(pPatients);
+    fclose(pTemp); 
+
+    //removes the old file and renames the new one with the updated data
+    remove(PATIENTS_FPATH);
+    rename(TEMP_FPATH, PATIENTS_FPATH);
+
+//update doctors id - same logic
+    pDoctors = fopen(DOCTORS_FPATH, "r");
+    pTemp = fopen(TEMP_FPATH, "w"); 
+
+    while
+    (
+        fscanf(pDoctors, "%s %s %s %d\n", &inFile_doctor.name, &inFile_doctor.id_num,
+        &inFile_doctor.age, &inFile_doctor.amountOf_appoint) != EOF
+    )
+    {
+        if(strcmp(docId_toUp, inFile_doctor.id_num) == 0)
+        {
+            fprintf(pTemp, "%s %s %s %d\n", inFile_doctor.name, inFile_doctor.id_num,
+            inFile_doctor.age, inFile_doctor.amountOf_appoint - 1);
+        }
+        else
+        {
+            fprintf(pTemp, "%s %s %s %d\n", inFile_doctor.name, inFile_doctor.id_num,
+            inFile_doctor.age, inFile_doctor.amountOf_appoint);
+        }
+    }
+
+    fclose(pDoctors);
+    fclose(pTemp); 
+
+    remove(DOCTORS_FPATH);
+    rename(TEMP_FPATH, DOCTORS_FPATH);
 
     printf("\nAppointment Successfully Removed!");
 }
@@ -473,8 +593,9 @@ void showAppoint(void)
 
     while //prints appointments list
     (
-        fscanf(pAppoint, "%c %s %s %s %s\n", &inFile_appoint.type, &inFile_appoint.date, 
-        &inFile_appoint.time, &inFile_appoint.patientName, &inFile_appoint.doctorName) != EOF
+        fscanf(pAppoint, "%c %s %s %s %s %s %s\n", &inFile_appoint.type, &inFile_appoint.date, 
+        &inFile_appoint.time, &inFile_appoint.patientName, &inFile_appoint.patientId, 
+        &inFile_appoint.doctorName, &inFile_appoint.doctorId) != EOF
     )
     {
         lineCounter++;
@@ -592,12 +713,15 @@ void addPatient(void)
         }
     }
 
+    //it is 0, because is a new patient
+    newPatient.amountOf_appoint = 0;
+
     //how it is adding to file, there is no need to block the program
     checkFile(pPatients, PATIENTS_FPATH);
 
     pPatients = fopen(PATIENTS_FPATH, "a");
-    fprintf(pPatients, "%s %s %c %s %s\n", newPatient.name, newPatient.id_num, newPatient.sex, 
-    newPatient.age, newPatient.telephone);
+    fprintf(pPatients, "%s %s %c %s %s %d\n", newPatient.name, newPatient.id_num, newPatient.sex, 
+    newPatient.age, newPatient.telephone, newPatient.amountOf_appoint);
     fclose(pPatients);
 
     printf("\nNew Patient Successfully Added!");
@@ -705,13 +829,15 @@ void showPatient(void)
 
     while //reads each line in file and prints it
     (
-        fscanf(pPatients, "%s %s %c %s %s\n", &inFile_patient.name, &inFile_patient.id_num,
-        &inFile_patient.sex, &inFile_patient.age, &inFile_patient.telephone) != EOF
+        fscanf(pPatients, "%s %s %c %s %s %d\n", &inFile_patient.name, &inFile_patient.id_num,
+        &inFile_patient.sex, &inFile_patient.age, &inFile_patient.telephone, 
+        &inFile_patient.amountOf_appoint) != EOF
     )
     {
         lineCounter++;
-        printf("\n\n\t\t    %d - Name: %s - Age: %s - Telephone: %s", lineCounter, 
-        inFile_patient.name, inFile_patient.age, inFile_patient.telephone);
+        printf("\n\n\t%d - Name: %s - Age: %s - Telephone: %s - Appointments Amount: %d", 
+        lineCounter, inFile_patient.name, inFile_patient.age, inFile_patient.telephone, 
+        inFile_patient.amountOf_appoint);
     }
 
     fclose(pPatients);
@@ -793,10 +919,15 @@ void addDoctor(void)
     }
     strcpy(newDoc.age, input);
 
+    //it is 0, because is a new doctor
+    newDoc.amountOf_appoint = 0;
+
     //add to file
     checkFile(pDoctors, DOCTORS_FPATH);
+
     pDoctors = fopen(DOCTORS_FPATH, "a");
-    fprintf(pDoctors, "%s %s %s\n", newDoc.name, newDoc.id_num, newDoc.age);
+    fprintf(pDoctors, "%s %s %s %d\n", newDoc.name, newDoc.id_num, newDoc.age, 
+    newDoc.amountOf_appoint);
     fclose(pDoctors);
 
     printf("\nNew Doctor Successfully Added!");
@@ -905,13 +1036,13 @@ void showDoctor(void)
 
     while //reads each line in file and prints it
     (
-        fscanf(pDoctors, "%s %s %s\n", &inFile_doctor.name, &inFile_doctor.id_num,
-        &inFile_doctor.age) != EOF
+        fscanf(pDoctors, "%s %s %s %d\n", &inFile_doctor.name, &inFile_doctor.id_num,
+        &inFile_doctor.age, &inFile_doctor.amountOf_appoint) != EOF
     )
     {
         lineCounter++;
-        printf("\n\n\t\t\t    %d - Name: %s - Age: %s", lineCounter, inFile_doctor.name, 
-        inFile_doctor.age);
+        printf("\n\n\t\t%d - Name: %s - Age: %s - Appointments Amount: %d", 
+        lineCounter, inFile_doctor.name, inFile_doctor.age, inFile_doctor.amountOf_appoint);
     }
 
     fclose(pDoctors);
@@ -1061,10 +1192,12 @@ int isA_validId(char id[])
 
     while //reads the files
     (
-        fscanf(pDoctors, "%s %s %s\n", &inFile_doctor.name, &inFile_doctor.id_num,
-        &inFile_doctor.age) != EOF &&
-        fscanf(pPatients, "%s %s %c %s %s\n", &inFile_patient.name, &inFile_patient.id_num, 
-        &inFile_patient.sex, &inFile_patient.age, &inFile_patient.telephone) != EOF 
+        fscanf(pDoctors, "%s %s %s %d\n", &inFile_doctor.name, &inFile_doctor.id_num,
+        &inFile_doctor.age, &inFile_doctor.amountOf_appoint) != EOF &&
+        
+        fscanf(pPatients, "%s %s %c %s %s %d\n", &inFile_patient.name, &inFile_patient.id_num, 
+        &inFile_patient.sex, &inFile_patient.age, &inFile_patient.telephone, 
+        &inFile_patient.amountOf_appoint) != EOF 
     )
     {
         if(strcmp(inFile_doctor.id_num, id) == 0 || strcmp(inFile_patient.id_num, id) == 0)
