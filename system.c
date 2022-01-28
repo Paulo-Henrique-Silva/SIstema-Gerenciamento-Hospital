@@ -731,7 +731,7 @@ void removePatient(void)
 {
     patient inFile_patient;
     int lineCounter = 0, patientNum_toRemove = 0;
-    char input[1024] = {'\0'}, lineIn_file[1024] = {'\0'};
+    char input[1024] = {'\0'};
 
     if(login() == 0)
     {
@@ -753,13 +753,15 @@ void removePatient(void)
 
     while //shows patient list
     (
-        fscanf(pPatients, "%s %s %c %s %s\n", &inFile_patient.name, &inFile_patient.id_num, 
-        &inFile_patient.sex, &inFile_patient.age, &inFile_patient.telephone) != EOF
+        fscanf(pPatients, "%s %s %c %s %s %d\n", &inFile_patient.name, &inFile_patient.id_num, 
+        &inFile_patient.sex, &inFile_patient.age, &inFile_patient.telephone, 
+        &inFile_patient.amountOf_appoint) != EOF
     )
     {
         lineCounter++;
-        printf("\n\n\t\t    %d - Name: %s - Age: %s - Telephone: %s", lineCounter, 
-        inFile_patient.name, inFile_patient.age, inFile_patient.telephone);
+        printf("\n\n\t   %d - Name: %s - Age: %s - Telephone: %s - Appointments Amount: %d", 
+        lineCounter, inFile_patient.name, inFile_patient.age, inFile_patient.telephone, 
+        inFile_patient.amountOf_appoint);
     }
 
     fclose(pPatients);
@@ -785,13 +787,31 @@ void removePatient(void)
     pTemp = fopen(TEMP_FPATH, "w"); 
     lineCounter = 0;
 
-    while(fgets(lineIn_file, 1024, pPatients) != NULL)
+    while
+    (   fscanf(pPatients, "%s %s %c %s %s %d\n", &inFile_patient.name, &inFile_patient.id_num, 
+        &inFile_patient.sex, &inFile_patient.age, &inFile_patient.telephone, 
+        &inFile_patient.amountOf_appoint) != EOF
+    )
     {
         lineCounter++;
         
-        //prints the content in new file without the removed doctor
+        //prints the content in new file without the removed patient
         if(lineCounter != patientNum_toRemove)
-            fprintf(pTemp, "%s", lineIn_file);
+        {
+            fprintf(pTemp, "%s %s %c %s %s %d\n", inFile_patient.name, inFile_patient.id_num, 
+            inFile_patient.sex, inFile_patient.age, inFile_patient.telephone, 
+            inFile_patient.amountOf_appoint);
+        }
+        else if(inFile_patient.amountOf_appoint > 0) //you can't remove a patient with an appoint
+        {
+            fclose(pPatients);
+            fclose(pTemp);
+            remove(TEMP_FPATH);
+
+            printf("\nSorry, it is not possible to remove this Patient.");
+            printf("\nRemove all his appointments before remove him from System.");
+            return;
+        }
     }
 
     fclose(pPatients);
@@ -937,7 +957,7 @@ void removeDoctor(void)
 {
     doctor inFile_doctor;
     int lineCounter = 0, docNum_toRemove = 0;
-    char input[1024] = {'\0'}, lineIn_file[1024] = {'\0'};
+    char input[1024] = {'\0'};
 
     if(login() == 0)
     {
@@ -959,13 +979,13 @@ void removeDoctor(void)
 
     while //reads each line in file and prints doctor list
     (
-        fscanf(pDoctors, "%s %s %s\n", &inFile_doctor.name, &inFile_doctor.id_num,
-        &inFile_doctor.age) != EOF
+        fscanf(pDoctors, "%s %s %s %d\n", &inFile_doctor.name, &inFile_doctor.id_num,
+        &inFile_doctor.age, &inFile_doctor.amountOf_appoint) != EOF
     )
     {
         lineCounter++;
-        printf("\n\n\t\t\t    %d - Name: %s - Age: %s", lineCounter, inFile_doctor.name, 
-        inFile_doctor.age);
+        printf("\n\n\t\t    %d - Name: %s - Age: %s - Appointments Amount: %d", 
+        lineCounter, inFile_doctor.name, inFile_doctor.age, inFile_doctor.amountOf_appoint);
     }
 
     fclose(pDoctors);
@@ -992,13 +1012,30 @@ void removeDoctor(void)
     lineCounter = 0;
 
     //reads the old file
-    while(fgets(lineIn_file, 1024, pDoctors) != NULL)
+    while
+    (
+        fscanf(pDoctors, "%s %s %s %d\n", &inFile_doctor.name, &inFile_doctor.id_num,
+        &inFile_doctor.age, &inFile_doctor.amountOf_appoint) != EOF
+    )
     {
         lineCounter++;
         
         //prints the content in new file without the removed doctor
         if(lineCounter != docNum_toRemove)
-            fprintf(pTemp, "%s", lineIn_file);
+        {
+            fprintf(pTemp, "%s %s %s %d\n", inFile_doctor.name, inFile_doctor.id_num,
+            inFile_doctor.age, inFile_doctor.amountOf_appoint);
+        }
+        else if(inFile_doctor.amountOf_appoint > 0)
+        {
+            fclose(pDoctors);
+            fclose(pTemp);
+            remove(TEMP_FPATH);
+
+            printf("\nSorry, it is not possible to remove this Doctor.");
+            printf("\nRemove all his appointments before remove him from System.");
+            return;
+        }
     }
 
     fclose(pDoctors);
