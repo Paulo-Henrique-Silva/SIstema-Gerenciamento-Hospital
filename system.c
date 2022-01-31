@@ -11,9 +11,9 @@
 #define TEMP_FPATH "temp.tmp"
 
 #define DEFAULT_PWD "2022\n"
-#define MAX_PATIENTSNUM 10
-#define MAX_DOCTORSNUM 5
-#define MAX_APPOINTNUM 20
+#define MAX_PATIENTSNUM (10)
+#define MAX_DOCTORSNUM (5)
+#define MAX_APPOINTNUM (20)
 
 enum menuOptions 
 {
@@ -1113,7 +1113,21 @@ void changePwd(void)
 
 void help(void)
 {
+    system("cls");
+    printf("\t\t\t\t     PROGRAM INFO");
+    printf("\n\t\t\t--------------------------------------");
 
+    printf("\n\nThis program simulates a system from a Hospital.");
+    printf("\n\n - You can add and remove Doctors, Patients and Appointments to the System.");
+    printf("\n\n - A Doctor or a Patient cannot be removed if they have an Appointment in Schedule.");
+    printf("\n\n - To create a Medical Appointment, first it needs to add a Doctor and a Patient.");
+    printf("\n\n - An Appointment can be a Follow-up appointment or a Normal appointment.");
+    printf("\n\n - The MAX amount of each category in system is: ");
+    printf("\n * Appointments: %d", MAX_APPOINTNUM);
+    printf("\n * Doctors: %d", MAX_DOCTORSNUM);
+    printf("\n * Patients: %d", MAX_PATIENTSNUM);
+
+    printf("\n\n\nThank you for downloading - Paulo");
 }
 
 //Returns 1 if the adm password it is correct,
